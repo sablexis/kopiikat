@@ -33,6 +33,9 @@ module.exports = {
                 const indentLvl = line.search(/[^ ]/)
                 // boolean var to see if line is to be converted to channel or category
                 const isChannel = indentLvl > 0
+                // creating map to store create empty object/map to store structure
+                const structureMap = new Map();
+                
 
                 if(indentLvl === 1){
                     throw new Error(`Error: Invalid indentation in line: "${line}". Use no spaces for categories or 2 spaces for channels.`);
@@ -48,7 +51,27 @@ module.exports = {
                 if (line.indexOf("'") === -1 || line.lastIndexOf("'") === line.indexOf("'")) {
                     throw new Error(`Error: Invalid name in line: "${line}". Use '' for names!`);
                 }
+
+                if (!isChannel){
+
+                    // current category in map
+                    let currCategory
+
+                    currCategory = name;
+                    structureMap.set(currCategory,[])
+                    
+                } else {
+                    structureMap.get(currCategory).push(name)
+                }
+
+                if (!currCategory){
+                    throw new Error(`Error: Can't have channel without category`);
+                }
+               
             });
+
+            
+
         }
         catch (error) {
             await interaction.reply(error.message);
