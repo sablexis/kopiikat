@@ -1,4 +1,4 @@
-const {createStructure, ChannelType} = require('discord.js')
+const {createStructure, ChannelType, SlashCommandBuilder, PermissionFlagsBits} = require('discord.js')
 /* 
  * helper function for createStructure
  * takes in guild and structure map
@@ -71,17 +71,17 @@ module.exports = {
      * execute method will contain functionality to run from our event handler when the command is used.
     */
 
-    data: new createStructure()
+    data: new SlashCommandBuilder()
         .setName('structure')
         .setDescription('creates server structure')
-        .addStringOption(option > 
+        .addStringOption(option => 
             option
                 .setName('markdown')
-                .setDescription('channel structure in markdown'
+                .setDescription('channel structure in markdown')
                 .setRequired(true)
                 .setMaxLength(2000))
         .setDefaultMemberPermissions(PermissionFlagsBits.MANAGE_CHANNELS)
-        ),
+        ,
         async execute(interaction){
             // the logic that interprets the string passed by the user
             // markdown keyword so bot knows that the following command is the structure we want
