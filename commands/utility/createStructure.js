@@ -137,12 +137,48 @@ module.exports = {
 
             
 
-        }
-        catch (error) {
-            await interaction.reply(error.message);
-            return;
+            }
+            catch (error) {
+                await interaction.reply(error.message);
+                return;
 
-        }
-            //await interaction.reply('created!')
+            }
+            await createChannelsFromMap()
+
+            /* 
+             * Await the createChannelsFromMap function call
+             * Check returned results object
+             * Format a user-friendly response:
+             *   List successful creations
+             *   List any failures
+             *   Give summary (e.g., "Created 3 categories and 8 channels, 1 failure")
+             * Send appropriate response to user via interaction.reply
+             *   Success message if everything worked
+             *   Mixed success/failure message if partial success
+             *   Error message if complete failure
+            */
+
+            
+                // iterate over success and add those values to new array for easy use for template literal
+                const successList = results.success
+                const failureList = results.failures
+                const successCount = successList.length
+                const failureCount = failureList.length
+
+                const sucessMap = successList.map(successElem => "- " + successElem).join('\n')
+                const failureMap = failureList.map(failureElem => "- " + failureElem).join('\n')
+
+
+                const templateOutput = `hello client name!
+                I: ${sucessMap}
+                But, I: ${failureMap}
+                ${successCount} of ${successCount + failureCount} elements created.`
+                 
+
+
+            
+
+            await interaction.reply(templateOutput)
+
         }
 }
