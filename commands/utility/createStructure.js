@@ -8,7 +8,15 @@ module.exports = {
 
     data: new createStructure()
         .setName('structure')
-        .setDescription('creates server structure'),
+        .setDescription('creates server structure')
+        .addStringOption(option > 
+            option
+                .setName('markdown')
+                .setDescription('channel structure in markdown'
+                .setRequired(true)
+                .setMaxLength(2000))
+        .setDefaultMemberPermissions(PermissionFlagsBits.MANAGE_CHANNELS)
+        ),
         async execute(interaction){
             await interaction.reply('created!')
         }
