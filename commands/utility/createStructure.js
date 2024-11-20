@@ -1,4 +1,69 @@
-const {createStructure} = require('discord.js')
+const {createStructure, ChannelType} = require('discord.js')
+/* 
+ * helper function for createStructure
+ * takes in guild and structure map
+*/
+async function createChannelsFromMap(guild, structureMap) {
+    // results map to track whether things were created correctly
+    const results = {
+        success: [],
+        failures: []
+    };
+
+    // outer try loop to catch category errors
+    try {
+        // lets iterate over the map we passed through
+            for (const [catName, subChannels] of structureMap) {
+                // inner try loop to catch category errors
+                try {
+                    /* 
+                    * interaction.guild - gets the server (guild) where command was used
+                    * channels - channel manager 
+                    * create - takes category name plus type
+                    */
+                    const category = await interaction.guild.channels.create({
+                        name: catName,
+                        type: ChannelType.GuildCategory
+                    });
+                    // push result to result map success array if passed
+                    results.success.push(`Created category: ${catName}`);
+
+                // nested for loop to access subChannels WHICH IS AN ARRAY, NOT A MAP— JUST STORED IN A MAP
+                for (const chanName of subChannels) {
+                    // inner INNER try loop to catch channel errors
+                    try {
+                        /* 
+                        * guild - gets the server (guild) where command was used
+                        * channels - channel manager 
+                        * create - takes category name plus type plus parent category
+                        */
+                        await guild.channels.create({
+                            name: chanName,
+                            type: ChannelType.GuildText,
+                            parent: category.id
+                        });
+                        // push result to result map success array if passed
+                        results.success.push(`Created channel: ${chanName}`);
+                    } catch (channelError) {
+                        // push result to result map failure array if error
+                        results.failures.push(`Failed to create channel ${chanName}: ${channelError.message}`);
+                    }
+                    
+                }
+                } catch (categoryError) {
+                    // push result to result map failure array if error
+                    results.failures.push(`Failed to create category ${catName}: ${categoryError.message}`);
+                }
+                
+            }
+    }
+
+    catch (error){
+        results.failures.push(`Unexpected error: ${error.message}`);
+    }
+
+    return results
+}
 
 module.exports = {
     /* 
