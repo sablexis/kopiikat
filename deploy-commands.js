@@ -1,0 +1,1 @@
+// This file will be used to register and update the slash commands for your bot application.
