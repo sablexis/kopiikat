@@ -5,6 +5,19 @@ require("dotenv").config();
 const fs = require('node:fs')
 const path = require('node:path')
 
+const express = require('express');
+//const { PORT } = require("dotenv").config();
+const PORT = process.env.PORT;
+
+const app = express();
+
+app.get('/', (request, response) => {
+	return response.sendFile('index.html', { root: '.' });
+});
+
+app.listen(PORT, () => console.log(`App listening at ${PORT}`));
+
+
 
 //dotenv.config();
 
