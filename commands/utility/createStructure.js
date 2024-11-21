@@ -3,6 +3,8 @@ const {createStructure, ChannelType, SlashCommandBuilder, PermissionFlagsBits} =
  * helper function for createStructure
  * takes in guild and structure map
 */
+
+
 async function createChannelsFromMap(guild, structureMap) {
     // results map to track whether things were created correctly
     const results = {
@@ -21,7 +23,7 @@ async function createChannelsFromMap(guild, structureMap) {
                     * channels - channel manager 
                     * create - takes category name plus type
                     */
-                    const category = await interaction.guild.channels.create({
+                    const category = await guild.channels.create({
                         name: catName,
                         type: ChannelType.GuildCategory
                     });
@@ -56,6 +58,7 @@ async function createChannelsFromMap(guild, structureMap) {
                 }
                 
             }
+            return results
     }
 
     catch (error){
@@ -85,100 +88,88 @@ module.exports = {
         async execute(interaction){
             // the logic that interprets the string passed by the user
             // markdown keyword so bot knows that the following command is the structure we want
-            const markdown = interaction.options.getString('markdown');
-            // split our mssg into individual lines 
-            const lines = markdown.split('\n')
+
+
 
             try {
 
                 
-            // for each loop to iterate over the lines we split earlier
-            lines.forEach(line => {
-                // indentLvl variable which stores # of leading spaces using reg exp.
-                const indentLvl = line.search(/[^ ]/)
-                // boolean var to see if line is to be converted to channel or category
-                const isChannel = indentLvl > 0
-                // creating map to store create empty object/map to store structure
-                const structureMap = new Map();
-                
-
-                if(indentLvl === 1){
-                    throw new Error(`Error: Invalid indentation in line: "${line}". Use no spaces for categories or 2 spaces for channels.`);
+                    await interaction.deferReply();
+                    const markdown = interaction.options.getString('markdown');
+                    const structureMap = new Map();
+             
+                    // Split into category blocks
+                    const categoryBlocks = markdown.split('|').map(block => block.trim());
                     
-                }
-                // name var that stores name passed in '' by user
-                const name = line.substring(
-                    line.indexOf("'") + 1,
-                    line.lastIndexOf("'")
-                )
+                    // Process each block
+                    categoryBlocks.forEach(block => {
+                        const [categoryPart, channelsPart] = block.split(':').map(part => part.trim());
+                        // Extract category name from quotes
+                        const categoryName = categoryPart.substring(
+                            categoryPart.indexOf("'") + 1,
+                            categoryPart.lastIndexOf("'")
+                        ).trim();
+                        
+                        // Split channels string into array and clean each channel name
+                        const channels = channelsPart.split(',')
+                            .map(chan => chan.trim())
+                            .map(chan => chan.substring(
+                                chan.indexOf("'") + 1,
+                                chan.lastIndexOf("'")
+                            ).trim());
+                        
+                        structureMap.set(categoryName, channels);
+                    });
+            
 
-                // if the line does not start with a ', end with a ' or has no quotes at all throw an error
-                if (line.indexOf("'") === -1 || line.lastIndexOf("'") === line.indexOf("'")) {
-                    throw new Error(`Error: Invalid name in line: "${line}". Use '' for names!`);
-                }
+            console.log('Structure Map:', Object.fromEntries(structureMap));
 
-                if (!isChannel){
-
-                    // current category in map
-                    let currCategory
-
-                    currCategory = name;
-                    structureMap.set(currCategory,[])
-                    
-                } else {
-                    structureMap.get(currCategory).push(name)
-                }
-
-                if (!currCategory){
-                    throw new Error(`Error: Can't have channel without category`);
-                }
-               
-            });
+            const results = await createChannelsFromMap(interaction.guild, structureMap);
 
             
 
-            }
-            catch (error) {
-                await interaction.reply(error.message);
-                return;
 
-            }
-            await createChannelsFromMap()
-
-            /* 
-             * Await the createChannelsFromMap function call
-             * Check returned results object
-             * Format a user-friendly response:
-             *   List successful creations
-             *   List any failures
-             *   Give summary (e.g., "Created 3 categories and 8 channels, 1 failure")
-             * Send appropriate response to user via interaction.reply
-             *   Success message if everything worked
-             *   Mixed success/failure message if partial success
-             *   Error message if complete failure
-            */
-
-            
-                // iterate over success and add those values to new array for easy use for template literal
                 const successList = results.success
                 const failureList = results.failures
                 const successCount = successList.length
                 const failureCount = failureList.length
+                const userName = interaction.member.displayName
 
                 const sucessMap = successList.map(successElem => "- " + successElem).join('\n')
                 const failureMap = failureList.map(failureElem => "- " + failureElem).join('\n')
 
+                let templateOutput;
 
-                const templateOutput = `hello client name!
-                I: ${sucessMap}
-                But, I: ${failureMap}
-                ${successCount} of ${successCount + failureCount} elements created.`
+                if (failureCount === 0) {
+                    templateOutput = `hii ${userName}!
+                    ✅ Successful!!
+                    ${sucessMap} \n
+                    \n ${successCount} of ${successCount + failureCount} elements created.`;
+                }
+                else {
+                    templateOutput = `hii ${userName}!
+                    ✅ Successful!!
+                    ${sucessMap} \n
+                    😔 not so much
+                    ${failureMap}
+                    \n ${successCount} of ${successCount + failureCount} elements created.`;
+                }
+
                  
+            await interaction.editReply(templateOutput)
+
+            }
+            catch (error) {
+                
+                    await interaction.editReply({ content: `Error: ${error.message}`, ephemeral: true });
+                
+
+            }
 
 
             
 
-            await interaction.reply(templateOutput)
+            
 
         }
 }
